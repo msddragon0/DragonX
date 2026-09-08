@@ -7,10 +7,10 @@ print("[DRONX] Iniciando loader...")
 
 -- Substitua os IDs abaixo pelos IDs reais dos seus scripts no Pastebin
 local scripts = {
-    ["Config"] = "https://pastebin.com/raw/CONFIG_ID",
-    ["GUI"] = "https://pastebin.com/raw/GUI_ID",
-    ["Farm"] = "https://pastebin.com/raw/FARM_ID",
-    ["Teleport"] = "https://pastebin.com/raw/TELEPORT_ID"
+    ["Config"] = "https://raw.githubusercontent.com/msddragon0/DragonX/refs/heads/main/Config.lua",
+    ["GUI"] = "https://raw.githubusercontent.com/msddragon0/DragonX/refs/heads/main/GUI.lua",
+    ["Farm"] = "https://raw.githubusercontent.com/msddragon0/DragonX/refs/heads/main/Farm.lua",
+    ["Teleport"] = "https://raw.githubusercontent.com/msddragon0/DragonX/refs/heads/main/Teleport.lua"
 }
 
 for nome, url in pairs(scripts) do
