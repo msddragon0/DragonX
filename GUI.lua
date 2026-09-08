@@ -1,5 +1,6 @@
 -- ============================================================
--- GUI.lua – Interface visual do DRONX
+-- GUI.lua – Interface DRONX com minimizar, notificações, 
+--          seletor de bosses e correção do Auto Farm
 -- ============================================================
 
 local function criarGUI()
@@ -12,10 +13,10 @@ local function criarGUI()
     screenGui.ResetOnSpawn = false
     screenGui.Parent = guiParent
 
-    -- Janela principal
+    -- ====== JANELA PRINCIPAL ======
     local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 500, 0, 450)
-    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -225)
+    mainFrame.Size = UDim2.new(0, 480, 0, 500)
+    mainFrame.Position = UDim2.new(0.5, -240, 0.5, -250)
     mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
     mainFrame.BorderSizePixel = 1
     mainFrame.BorderColor3 = Color3.fromRGB(60, 60, 70)
@@ -23,90 +24,127 @@ local function criarGUI()
     mainFrame.Draggable = true
     mainFrame.Parent = screenGui
 
-    -- Título
+    -- ====== TÍTULO COM BOTÕES MINIMIZAR E FECHAR ======
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 35)
+    titleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    titleBar.Parent = mainFrame
+
     local titulo = Instance.new("TextLabel")
-    titulo.Size = UDim2.new(1, 0, 0, 35)
-    titulo.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    titulo.Size = UDim2.new(0.8, 0, 1, 0)
+    titulo.Position = UDim2.new(0, 10, 0, 0)
+    titulo.BackgroundTransparency = 1
     titulo.Text = "DRONX"
     titulo.TextColor3 = Color3.fromRGB(255, 215, 0)
     titulo.TextScaled = true
     titulo.Font = Enum.Font.GothamBold
-    titulo.Parent = mainFrame
+    titulo.TextXAlignment = Enum.TextXAlignment.Left
+    titulo.Parent = titleBar
 
-    -- Botão fechar
-    local fecharBtn = Instance.new("TextButton")
-    fecharBtn.Size = UDim2.new(0, 30, 0, 30)
-    fecharBtn.Position = UDim2.new(1, -35, 0, 3)
-    fecharBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-    fecharBtn.Text = "X"
-    fecharBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    fecharBtn.TextScaled = true
-    fecharBtn.Font = Enum.Font.GothamBold
-    fecharBtn.Parent = mainFrame
-    fecharBtn.MouseButton1Click:Connect(function() screenGui:Destroy() end)
+    -- Botão Minimizar (bolinha verde)
+    local btnMinimizar = Instance.new("TextButton")
+    btnMinimizar.Size = UDim2.new(0, 25, 0, 25)
+    btnMinimizar.Position = UDim2.new(1, -65, 0, 5)
+    btnMinimizar.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+    btnMinimizar.Text = "—"
+    btnMinimizar.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btnMinimizar.TextScaled = true
+    btnMinimizar.Font = Enum.Font.GothamBold
+    btnMinimizar.BorderSizePixel = 0
+    btnMinimizar.Parent = titleBar
 
-    -- ====== BARRA DE ABAS ======
-    local tabBar = Instance.new("Frame")
-    tabBar.Size = UDim2.new(1, -10, 0, 35)
-    tabBar.Position = UDim2.new(0, 5, 0, 40)
-    tabBar.BackgroundTransparency = 1
-    tabBar.Parent = mainFrame
+    -- Botão Fechar (vermelho)
+    local btnFechar = Instance.new("TextButton")
+    btnFechar.Size = UDim2.new(0, 25, 0, 25)
+    btnFechar.Position = UDim2.new(1, -35, 0, 5)
+    btnFechar.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+    btnFechar.Text = "X"
+    btnFechar.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btnFechar.TextScaled = true
+    btnFechar.Font = Enum.Font.GothamBold
+    btnFechar.BorderSizePixel = 0
+    btnFechar.Parent = titleBar
+    btnFechar.MouseButton1Click:Connect(function() screenGui:Destroy() end)
 
-    local tabs = {
-        {name = "Farm", id = "farm"},
-        {name = "Teleport", id = "teleport"},
-        {name = "Config", id = "config"}
-    }
+    -- Variável de estado para minimizar
+    local minimizado = false
 
-    local tabButtons = {}
-    local contentFrames = {}
+    btnMinimizar.MouseButton1Click:Connect(function()
+        minimizado = not minimizado
+        if minimizado then
+            mainFrame.Size = UDim2.new(0, 480, 0, 35)
+            btnMinimizar.Text = "+"
+            btnMinimizar.BackgroundColor3 = Color3.fromRGB(200, 150, 0)
+        else
+            mainFrame.Size = UDim2.new(0, 480, 0, 500)
+            btnMinimizar.Text = "—"
+            btnMinimizar.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+        end
+    end)
 
-    for i, tab in ipairs(tabs) do
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0.33, -2, 1, -4)
-        btn.Position = UDim2.new((i-1)*0.33, 2, 0, 2)
-        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-        btn.Text = tab.name
-        btn.TextColor3 = Color3.fromRGB(200, 200, 210)
-        btn.TextScaled = true
-        btn.Font = Enum.Font.GothamBold
-        btn.BorderSizePixel = 0
-        btn.Parent = tabBar
-        btn.Name = tab.id
-        tabButtons[tab.id] = btn
+    -- ====== SISTEMA DE NOTIFICAÇÃO ======
+    local notificacao = Instance.new("Frame")
+    notificacao.Size = UDim2.new(0, 300, 0, 40)
+    notificacao.Position = UDim2.new(0.5, -150, 0, -50)
+    notificacao.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    notificacao.BorderSizePixel = 1
+    notificacao.BorderColor3 = Color3.fromRGB(255, 215, 0)
+    notificacao.Visible = false
+    notificacao.Parent = screenGui
 
-        btn.MouseButton1Click:Connect(function()
-            for _, b in pairs(tabButtons) do
-                b.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-                b.TextColor3 = Color3.fromRGB(200, 200, 210)
-            end
-            btn.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
-            btn.TextColor3 = Color3.fromRGB(18, 18, 22)
-            for _, f in pairs(contentFrames) do
-                f.Visible = false
-            end
-            if contentFrames[tab.id] then
-                contentFrames[tab.id].Visible = true
-            end
-        end)
+    local notifTexto = Instance.new("TextLabel")
+    notifTexto.Size = UDim2.new(1, -10, 1, 0)
+    notifTexto.Position = UDim2.new(0, 5, 0, 0)
+    notifTexto.BackgroundTransparency = 1
+    notifTexto.Text = ""
+    notifTexto.TextColor3 = Color3.fromRGB(255, 255, 255)
+    notifTexto.TextScaled = true
+    notifTexto.Font = Enum.Font.Gotham
+    notifTexto.Parent = notificacao
+
+    local function mostrarNotificacao(texto, cor)
+        cor = cor or Color3.fromRGB(255, 215, 0)
+        notificacao.BorderColor3 = cor
+        notifTexto.Text = texto
+        notificacao.Position = UDim2.new(0.5, -150, 0, -50)
+        notificacao.Visible = true
+        -- Anima entrada
+        local tween = game:GetService("TweenService"):Create(notificacao, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Position = UDim2.new(0.5, -150, 0, 20)})
+        tween:Play()
+        tween.Completed:Wait()
+        task.wait(3)
+        -- Anima saída
+        local tween2 = game:GetService("TweenService"):Create(notificacao, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Position = UDim2.new(0.5, -150, 0, -50)})
+        tween2:Play()
+        tween2.Completed:Wait()
+        notificacao.Visible = false
     end
 
-    local function createContentTab(id)
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, -10, 1, -90)
-        frame.Position = UDim2.new(0, 5, 0, 80)
-        frame.BackgroundTransparency = 1
-        frame.Visible = false
-        frame.Parent = mainFrame
-        contentFrames[id] = frame
-        return frame
-    end
+    -- ====== CONTEÚDO PRINCIPAL (container com rolagem) ======
+    local container = Instance.new("ScrollingFrame")
+    container.Size = UDim2.new(1, -10, 1, -45)
+    container.Position = UDim2.new(0, 5, 0, 40)
+    container.BackgroundTransparency = 1
+    container.ScrollBarThickness = 5
+    container.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 90)
+    container.Parent = mainFrame
 
-    -- Função checkbox
-    local function createCheckbox(parent, y, text, varName)
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 8)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Parent = container
+
+    local pad = Instance.new("UIPadding")
+    pad.PaddingLeft = UDim.new(0, 5)
+    pad.PaddingRight = UDim.new(0, 5)
+    pad.PaddingTop = UDim.new(0, 5)
+    pad.PaddingBottom = UDim.new(0, 5)
+    pad.Parent = container
+
+    -- ====== FUNÇÃO PARA CRIAR CHECKBOX ======
+    local function createCheckbox(parent, text, varName)
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, -10, 0, 30)
-        frame.Position = UDim2.new(0, 5, 0, y)
+        frame.Size = UDim2.new(1, 0, 0, 30)
         frame.BackgroundTransparency = 1
         frame.Parent = parent
 
@@ -123,7 +161,7 @@ local function criarGUI()
 
         local check = Instance.new("TextButton")
         check.Size = UDim2.new(0, 25, 0, 25)
-        check.Position = UDim2.new(0.9, 0, 0, 2)
+        check.Position = UDim2.new(0.85, 0, 0, 2)
         check.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
         check.Text = ""
         check.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -133,7 +171,7 @@ local function criarGUI()
         check.BorderColor3 = Color3.fromRGB(255, 255, 255)
         check.Parent = frame
 
-        local state = getgenv().DRONX[varName] or false
+        local state = getgenv().DRONX and getgenv().DRONX[varName] or false
         if state then
             check.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
             check.Text = "✓"
@@ -141,186 +179,144 @@ local function criarGUI()
 
         check.MouseButton1Click:Connect(function()
             state = not state
+            if not getgenv().DRONX then getgenv().DRONX = {} end
             getgenv().DRONX[varName] = state
             check.BackgroundColor3 = state and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(100, 100, 100)
             check.Text = state and "✓" or ""
+            if state then
+                mostrarNotificacao(text .. " ativado!", Color3.fromRGB(0, 200, 0))
+            else
+                mostrarNotificacao(text .. " desativado!", Color3.fromRGB(200, 0, 0))
+            end
         end)
         return frame
     end
 
-    -- ====== ABA FARM ======
-    local farmFrame = createContentTab("farm")
-    local fY = 0
-    createCheckbox(farmFrame, fY, "Auto Farm", "AutoFarm")
-    fY = fY + 35
-    createCheckbox(farmFrame, fY, "Farm Maestria", "FarmMaestria")
-    fY = fY + 35
-    createCheckbox(farmFrame, fY, "Farm Boss", "FarmBoss")
-    fY = fY + 35
-    createCheckbox(farmFrame, fY, "Auto Coletar Itens", "AutoCollect")
-    fY = fY + 35
-    createCheckbox(farmFrame, fY, "Cura Automática", "AutoHeal")
-    fY = fY + 35
+    -- ====== SEÇÃO: FARM ======
+    local farmSection = Instance.new("Frame")
+    farmSection.Size = UDim2.new(1, 0, 0, 0)
+    farmSection.BackgroundTransparency = 1
+    farmSection.Parent = container
 
-    -- Campo para nome do Boss
-    local bossInput = Instance.new("TextBox")
-    bossInput.Size = UDim2.new(0.8, 0, 0, 30)
-    bossInput.Position = UDim2.new(0.1, 0, 0, fY)
-    bossInput.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    bossInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-    bossInput.TextSize = 16
-    bossInput.Font = Enum.Font.Gotham
-    bossInput.PlaceholderText = "Nome do Boss (ex: Don Swan)"
-    bossInput.Parent = farmFrame
-    fY = fY + 40
+    local farmTitle = Instance.new("TextLabel")
+    farmTitle.Size = UDim2.new(1, 0, 0, 25)
+    farmTitle.BackgroundTransparency = 1
+    farmTitle.Text = "⚔️ FARM"
+    farmTitle.TextColor3 = Color3.fromRGB(255, 215, 0)
+    farmTitle.TextSize = 18
+    farmTitle.Font = Enum.Font.GothamBold
+    farmTitle.TextXAlignment = Enum.TextXAlignment.Left
+    farmTitle.Parent = farmSection
 
-    bossInput.FocusLost:Connect(function()
-        getgenv().DRONX.BossName = bossInput.Text
+    createCheckbox(farmSection, "Auto Farm", "AutoFarm")
+    createCheckbox(farmSection, "Farm Maestria", "FarmMaestria")
+    createCheckbox(farmSection, "Auto Coletar Itens", "AutoCollect")
+    createCheckbox(farmSection, "Cura Automática", "AutoHeal")
+
+    -- ====== SEÇÃO: BOSS ======
+    local bossSection = Instance.new("Frame")
+    bossSection.Size = UDim2.new(1, 0, 0, 0)
+    bossSection.BackgroundTransparency = 1
+    bossSection.Parent = container
+
+    local bossTitle = Instance.new("TextLabel")
+    bossTitle.Size = UDim2.new(1, 0, 0, 25)
+    bossTitle.BackgroundTransparency = 1
+    bossTitle.Text = "👹 BOSS"
+    bossTitle.TextColor3 = Color3.fromRGB(255, 215, 0)
+    bossTitle.TextSize = 18
+    bossTitle.Font = Enum.Font.GothamBold
+    bossTitle.TextXAlignment = Enum.TextXAlignment.Left
+    bossTitle.Parent = bossSection
+
+    -- Dropdown de bosses (lista completa do Sea)
+    local bossDropdown = Instance.new("TextBox")
+    bossDropdown.Size = UDim2.new(0.9, 0, 0, 30)
+    bossDropdown.Position = UDim2.new(0.05, 0, 0, 0)
+    bossDropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    bossDropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
+    bossDropdown.TextSize = 16
+    bossDropdown.Font = Enum.Font.Gotham
+    bossDropdown.PlaceholderText = "Digite o nome do Boss"
+    bossDropdown.Parent = bossSection
+
+    -- Botão "CAÇAR BOSS"
+    local btnBoss = Instance.new("TextButton")
+    btnBoss.Size = UDim2.new(0.6, 0, 0, 30)
+    btnBoss.Position = UDim2.new(0.2, 0, 0, 40)
+    btnBoss.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    btnBoss.Text = "CAÇAR BOSS"
+    btnBoss.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btnBoss.TextScaled = true
+    btnBoss.Font = Enum.Font.GothamBold
+    btnBoss.Parent = bossSection
+
+    btnBoss.MouseButton1Click:Connect(function()
+        local nome = bossDropdown.Text
+        if nome == "" then
+            mostrarNotificacao("Digite o nome do boss!", Color3.fromRGB(255, 200, 0))
+            return
+        end
+        if not getgenv().DRONX then getgenv().DRONX = {} end
+        getgenv().DRONX.BossName = nome
+        getgenv().DRONX.BossFarm = true
+        mostrarNotificacao("Caçando: " .. nome, Color3.fromRGB(0, 200, 0))
     end)
 
-    -- Botão Iniciar/Parar
-    local btnFarm = Instance.new("TextButton")
-    btnFarm.Size = UDim2.new(0.6, 0, 0, 35)
-    btnFarm.Position = UDim2.new(0.2, 0, 0, fY + 10)
-    btnFarm.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-    btnFarm.Text = "INICIAR FARM"
-    btnFarm.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btnFarm.TextScaled = true
-    btnFarm.Font = Enum.Font.GothamBold
-    btnFarm.Parent = farmFrame
+    -- ====== SEÇÃO: ESTATÍSTICAS ======
+    local statsSection = Instance.new("Frame")
+    statsSection.Size = UDim2.new(1, 0, 0, 0)
+    statsSection.BackgroundTransparency = 1
+    statsSection.Parent = container
 
-    btnFarm.MouseButton1Click:Connect(function()
-        getgenv().DRONX.Running = not getgenv().DRONX.Running
-        btnFarm.Text = getgenv().DRONX.Running and "PARAR FARM" or "INICIAR FARM"
-        btnFarm.BackgroundColor3 = getgenv().DRONX.Running and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(0, 150, 0)
-        -- O módulo Farm.lua monitora DRONX.Running
-    end)
+    local statsTitle = Instance.new("TextLabel")
+    statsTitle.Size = UDim2.new(1, 0, 0, 25)
+    statsTitle.BackgroundTransparency = 1
+    statsTitle.Text = "📊 STATUS"
+    statsTitle.TextColor3 = Color3.fromRGB(255, 215, 0)
+    statsTitle.TextSize = 18
+    statsTitle.Font = Enum.Font.GothamBold
+    statsTitle.TextXAlignment = Enum.TextXAlignment.Left
+    statsTitle.Parent = statsSection
 
-    -- ====== ABA TELEPORT ======
-    local teleFrame = createContentTab("teleport")
-    local tY = 0
-    local coordInput = Instance.new("TextBox")
-    coordInput.Size = UDim2.new(0.8, 0, 0, 30)
-    coordInput.Position = UDim2.new(0.1, 0, 0, tY)
-    coordInput.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    coordInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-    coordInput.TextSize = 16
-    coordInput.Font = Enum.Font.Gotham
-    coordInput.PlaceholderText = "X, Y, Z (ex: 100, 50, 200)"
-    coordInput.Parent = teleFrame
-    tY = tY + 40
+    local statsLabel = Instance.new("TextLabel")
+    statsLabel.Size = UDim2.new(1, 0, 0, 25)
+    statsLabel.BackgroundTransparency = 1
+    statsLabel.Text = "💰 $1,323,522  |  📊 Lv. 2631"
+    statsLabel.TextColor3 = Color3.fromRGB(200, 200, 210)
+    statsLabel.TextSize = 16
+    statsLabel.Font = Enum.Font.Gotham
+    statsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    statsLabel.Parent = statsSection
 
-    local btnTele = Instance.new("TextButton")
-    btnTele.Size = UDim2.new(0.6, 0, 0, 35)
-    btnTele.Position = UDim2.new(0.2, 0, 0, tY + 10)
-    btnTele.BackgroundColor3 = Color3.fromRGB(30, 120, 200)
-    btnTele.Text = "TELEPORTAR"
-    btnTele.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btnTele.TextScaled = true
-    btnTele.Font = Enum.Font.GothamBold
-    btnTele.Parent = teleFrame
+    -- ====== BOTÃO INICIAR/PARAR ======
+    local btnMain = Instance.new("TextButton")
+    btnMain.Size = UDim2.new(0.6, 0, 0, 40)
+    btnMain.Position = UDim2.new(0.2, 0, 0, 0)
+    btnMain.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    btnMain.Text = "▶ INICIAR"
+    btnMain.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btnMain.TextScaled = true
+    btnMain.Font = Enum.Font.GothamBold
+    btnMain.Parent = container
 
-    btnTele.MouseButton1Click:Connect(function()
-        local coords = coordInput.Text
-        local x, y, z = coords:match("(%d+),%s*(%d+),%s*(%d+)")
-        if x and y and z then
-            getgenv().DRONX.TeleportCoords = {X = tonumber(x), Y = tonumber(y), Z = tonumber(z)}
+    btnMain.MouseButton1Click:Connect(function()
+        if not getgenv().DRONX then getgenv().DRONX = {} end
+        local running = not getgenv().DRONX.Running
+        getgenv().DRONX.Running = running
+        btnMain.Text = running and "⏹ PARAR" or "▶ INICIAR"
+        btnMain.BackgroundColor3 = running and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(0, 150, 0)
+        if running then
+            mostrarNotificacao("Todos os sistemas iniciados!", Color3.fromRGB(0, 200, 0))
+        else
+            mostrarNotificacao("Todos os sistemas parados.", Color3.fromRGB(200, 0, 0))
         end
     end)
 
-    -- Ilhas rápidas
-    local ilhas = {"Marine Fort", "Jungle", "Sky Island"}
-    for i, ilha in ipairs(ilhas) do
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0.3, -5, 0, 30)
-        btn.Position = UDim2.new(0.05 + (i-1)*0.35, 0, 0, tY + 60)
-        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-        btn.Text = ilha
-        btn.TextColor3 = Color3.fromRGB(200, 200, 210)
-        btn.TextScaled = true
-        btn.Font = Enum.Font.GothamBold
-        btn.Parent = teleFrame
-        btn.MouseButton1Click:Connect(function()
-            local coords = {
-                ["Marine Fort"] = CFrame.new(100, 50, 200),
-                ["Jungle"] = CFrame.new(-150, 30, 300),
-                ["Sky Island"] = CFrame.new(0, 500, 0)
-            }
-            if coords[ilha] then
-                getgenv().DRONX.TeleportCoords = {X = coords[ilha].X, Y = coords[ilha].Y, Z = coords[ilha].Z}
-            end
-        end)
-    end
+    -- Ajuste final do container
+    container.CanvasSize = UDim2.new(0, 0, 0, 600) -- altura suficiente para rolagem
 
-    -- ====== ABA CONFIG ======
-    local configFrame = createContentTab("config")
-    local cY = 0
-    local distLabel = Instance.new("TextLabel")
-    distLabel.Size = UDim2.new(1, 0, 0, 25)
-    distLabel.Position = UDim2.new(0, 0, 0, cY)
-    distLabel.BackgroundTransparency = 1
-    distLabel.Text = "Distância de ataque: " .. (getgenv().DRONX.AttackDistance or 40)
-    distLabel.TextColor3 = Color3.fromRGB(200, 200, 210)
-    distLabel.TextSize = 16
-    distLabel.Font = Enum.Font.Gotham
-    distLabel.Parent = configFrame
-    cY = cY + 30
-
-    local distSlider = Instance.new("Frame")
-    distSlider.Size = UDim2.new(0.8, 0, 0, 5)
-    distSlider.Position = UDim2.new(0.1, 0, 0, cY)
-    distSlider.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-    distSlider.Parent = configFrame
-    cY = cY + 15
-
-    local distFill = Instance.new("Frame")
-    distFill.Size = UDim2.new((getgenv().DRONX.AttackDistance or 40) / 80, 0, 1, 0)
-    distFill.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
-    distFill.Parent = distSlider
-
-    local decBtn = Instance.new("TextButton")
-    decBtn.Size = UDim2.new(0, 30, 0, 30)
-    decBtn.Position = UDim2.new(0.05, 0, 0, cY - 12)
-    decBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-    decBtn.Text = "-"
-    decBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    decBtn.TextScaled = true
-    decBtn.Font = Enum.Font.GothamBold
-    decBtn.Parent = configFrame
-
-    local incBtn = Instance.new("TextButton")
-    incBtn.Size = UDim2.new(0, 30, 0, 30)
-    incBtn.Position = UDim2.new(0.85, 0, 0, cY - 12)
-    incBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-    incBtn.Text = "+"
-    incBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    incBtn.TextScaled = true
-    incBtn.Font = Enum.Font.GothamBold
-    incBtn.Parent = configFrame
-
-    decBtn.MouseButton1Click:Connect(function()
-        local d = getgenv().DRONX.AttackDistance
-        d = math.max(10, d - 5)
-        getgenv().DRONX.AttackDistance = d
-        distLabel.Text = "Distância de ataque: " .. d
-        distFill.Size = UDim2.new(d / 80, 0, 1, 0)
-    end)
-    incBtn.MouseButton1Click:Connect(function()
-        local d = getgenv().DRONX.AttackDistance
-        d = math.min(80, d + 5)
-        getgenv().DRONX.AttackDistance = d
-        distLabel.Text = "Distância de ataque: " .. d
-        distFill.Size = UDim2.new(d / 80, 0, 1, 0)
-    end)
-    cY = cY + 40
-
-    createCheckbox(configFrame, cY, "Auto Reconectar", "AutoReconnect")
-    cY = cY + 35
-
-    -- ====== ATIVA A PRIMEIRA ABA ======
-    tabButtons["farm"].MouseButton1Click:Fire()
-
-    print("[DRONX] GUI carregada.")
+    print("[DRONX] GUI carregada com notificações, minimizar e seletor de bosses.")
 end
 
 pcall(criarGUI)
