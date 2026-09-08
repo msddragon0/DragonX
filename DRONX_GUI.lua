@@ -1,50 +1,26 @@
--- ============================================================
--- DRONX_GUI.lua – Interface principal
--- Carrega e controla os módulos separados via getgenv()
--- ============================================================
+-- DRONX_GUI.lua – Interface visual (separada)
+-- Contém todas as abas e checkboxes, mas as funções estão nos módulos.
 
--- ====== INICIALIZAÇÃO DAS VARIÁVEIS GLOBAIS ======
-getgenv().DRONX = {
-    AutoFarm = false,
-    AutoCollect = false,
-    AutoHeal = false,
-    FarmMaestria = false,
-    FarmMaestriaFruit = false,
-    BossFarm = false,
-    BossName = "",
-    TeleportCoords = {X = 0, Y = 0, Z = 0},
-    AttackDistance = 40,
-    AutoReconnect = false,
-    Running = false
-}
-
--- ====== CARREGA OS MÓDULOS (se existirem) ======
--- Você pode carregar via loadstring ou simplesmente colar os scripts abaixo.
--- Exemplo: loadstring(game:HttpGet("https://pastebin.com/raw/FARM_ID"))()
-
--- ====== CRIAÇÃO DA GUI ======
 local function criarGUI()
     local player = game.Players.LocalPlayer
     local guiParent = game:GetService("CoreGui") or player:WaitForChild("PlayerGui") or game:GetService("StarterGui")
-    if not guiParent then return warn("[DRONX] Sem pai para GUI") end
+    if not guiParent then return warn("[DRONX] Sem pai") end
 
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "DRONX_GUI"
     screenGui.ResetOnSpawn = false
     screenGui.Parent = guiParent
 
-    -- Janela principal
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 500, 0, 450)
-    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -225)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
-    mainFrame.BorderSizePixel = 1
-    mainFrame.BorderColor3 = Color3.fromRGB(60, 60, 70)
-    mainFrame.Active = true
-    mainFrame.Draggable = true
-    mainFrame.Parent = screenGui
+    local main = Instance.new("Frame")
+    main.Size = UDim2.new(0, 500, 0, 450)
+    main.Position = UDim2.new(0.5, -250, 0.5, -225)
+    main.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+    main.BorderSizePixel = 1
+    main.BorderColor3 = Color3.fromRGB(60, 60, 70)
+    main.Active = true
+    main.Draggable = true
+    main.Parent = screenGui
 
-    -- Título
     local titulo = Instance.new("TextLabel")
     titulo.Size = UDim2.new(1, 0, 0, 35)
     titulo.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
@@ -52,44 +28,39 @@ local function criarGUI()
     titulo.TextColor3 = Color3.fromRGB(255, 215, 0)
     titulo.TextScaled = true
     titulo.Font = Enum.Font.GothamBold
-    titulo.Parent = mainFrame
+    titulo.Parent = main
 
-    -- Botão fechar
-    local fecharBtn = Instance.new("TextButton")
-    fecharBtn.Size = UDim2.new(0, 30, 0, 30)
-    fecharBtn.Position = UDim2.new(1, -35, 0, 3)
-    fecharBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-    fecharBtn.Text = "X"
-    fecharBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    fecharBtn.TextScaled = true
-    fecharBtn.Font = Enum.Font.GothamBold
-    fecharBtn.Parent = mainFrame
-    fecharBtn.MouseButton1Click:Connect(function() screenGui:Destroy() end)
+    local fechar = Instance.new("TextButton")
+    fechar.Size = UDim2.new(0, 30, 0, 30)
+    fechar.Position = UDim2.new(1, -35, 0, 3)
+    fechar.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+    fechar.Text = "X"
+    fechar.TextColor3 = Color3.fromRGB(255, 255, 255)
+    fechar.TextScaled = true
+    fechar.Font = Enum.Font.GothamBold
+    fechar.Parent = main
+    fechar.MouseButton1Click:Connect(function() screenGui:Destroy() end)
 
-    -- ====== BARRA DE CATEGORIAS (ABAS) ======
+    -- Abas
     local tabBar = Instance.new("Frame")
     tabBar.Size = UDim2.new(1, -10, 0, 35)
     tabBar.Position = UDim2.new(0, 5, 0, 40)
     tabBar.BackgroundTransparency = 1
-    tabBar.Parent = mainFrame
+    tabBar.Parent = main
 
     local tabs = {
         {name = "Farm", id = "farm"},
-        {name = "Maestria", id = "maestria"},
-        {name = "Boss", id = "boss"},
         {name = "Teleport", id = "teleport"},
         {name = "Config", id = "config"}
     }
 
     local tabButtons = {}
-    local activeTab = "farm"
     local contentFrames = {}
 
-    -- Função para criar botões de aba
     for i, tab in ipairs(tabs) do
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0.2, -2, 1, -4)
-        btn.Position = UDim2.new((i-1)*0.2, 2, 0, 2)
+        btn.Size = UDim2.new(0.33, -2, 1, -4)
+        btn.Position = UDim2.new((i-1)*0.33, 2, 0, 2)
         btn.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
         btn.Text = tab.name
         btn.TextColor3 = Color3.fromRGB(200, 200, 210)
@@ -101,7 +72,6 @@ local function criarGUI()
         tabButtons[tab.id] = btn
 
         btn.MouseButton1Click:Connect(function()
-            activeTab = tab.id
             for _, b in pairs(tabButtons) do
                 b.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
                 b.TextColor3 = Color3.fromRGB(200, 200, 210)
@@ -117,19 +87,17 @@ local function criarGUI()
         end)
     end
 
-    -- Função auxiliar para criar frame de conteúdo
     local function createContentTab(id)
         local frame = Instance.new("Frame")
         frame.Size = UDim2.new(1, -10, 1, -90)
         frame.Position = UDim2.new(0, 5, 0, 80)
         frame.BackgroundTransparency = 1
         frame.Visible = false
-        frame.Parent = mainFrame
+        frame.Parent = main
         contentFrames[id] = frame
         return frame
     end
 
-    -- ====== FUNÇÃO PARA CRIAR CHECKBOX ======
     local function createCheckbox(parent, y, text, varName)
         local frame = Instance.new("Frame")
         frame.Size = UDim2.new(1, -10, 0, 30)
@@ -160,7 +128,6 @@ local function criarGUI()
         check.BorderColor3 = Color3.fromRGB(255, 255, 255)
         check.Parent = frame
 
-        -- Estado inicial (pega da variável global)
         local state = getgenv().DRONX[varName] or false
         if state then
             check.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
@@ -185,57 +152,32 @@ local function criarGUI()
     fY = fY + 35
     createCheckbox(farmFrame, fY, "Cura Automática", "AutoHeal")
     fY = fY + 35
+    createCheckbox(farmFrame, fY, "Farm Maestria (Espada)", "FarmMaestria")
+    fY = fY + 35
+    createCheckbox(farmFrame, fY, "Farm Maestria (Fruta)", "FarmMaestriaFruit")
+    fY = fY + 35
 
-    -- Botão Iniciar/Parar
-    local btnFarm = Instance.new("TextButton")
-    btnFarm.Size = UDim2.new(0.6, 0, 0, 35)
-    btnFarm.Position = UDim2.new(0.2, 0, 0, fY + 10)
-    btnFarm.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-    btnFarm.Text = "INICIAR TODOS"
-    btnFarm.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btnFarm.TextScaled = true
-    btnFarm.Font = Enum.Font.GothamBold
-    btnFarm.Parent = farmFrame
-
-    btnFarm.MouseButton1Click:Connect(function()
-        getgenv().DRONX.Running = not getgenv().DRONX.Running
-        btnFarm.Text = getgenv().DRONX.Running and "PARAR TODOS" or "INICIAR TODOS"
-        btnFarm.BackgroundColor3 = getgenv().DRONX.Running and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(0, 150, 0)
-        -- Os loops em cada módulo verificam DRONX.Running para executar
-    end)
-
-    -- ====== ABA MAESTRIA ======
-    local maestriaFrame = createContentTab("maestria")
-    local mY = 0
-    createCheckbox(maestriaFrame, mY, "Farm Maestria (Espada)", "FarmMaestria")
-    mY = mY + 35
-    createCheckbox(maestriaFrame, mY, "Farm Maestria (Fruta)", "FarmMaestriaFruit")
-    mY = mY + 35
-
-    -- ====== ABA BOSS ======
-    local bossFrame = createContentTab("boss")
-    local bY = 0
-    -- Campo para nome do boss
+    -- Boss
     local bossInput = Instance.new("TextBox")
     bossInput.Size = UDim2.new(0.8, 0, 0, 30)
-    bossInput.Position = UDim2.new(0.1, 0, 0, bY)
+    bossInput.Position = UDim2.new(0.1, 0, 0, fY)
     bossInput.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
     bossInput.TextColor3 = Color3.fromRGB(255, 255, 255)
     bossInput.TextSize = 16
     bossInput.Font = Enum.Font.Gotham
     bossInput.PlaceholderText = "Nome do Boss"
-    bossInput.Parent = bossFrame
-    bY = bY + 40
+    bossInput.Parent = farmFrame
+    fY = fY + 40
 
     local btnBoss = Instance.new("TextButton")
     btnBoss.Size = UDim2.new(0.6, 0, 0, 35)
-    btnBoss.Position = UDim2.new(0.2, 0, 0, bY + 10)
+    btnBoss.Position = UDim2.new(0.2, 0, 0, fY + 10)
     btnBoss.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
     btnBoss.Text = "INICIAR CAÇA"
     btnBoss.TextColor3 = Color3.fromRGB(255, 255, 255)
     btnBoss.TextScaled = true
     btnBoss.Font = Enum.Font.GothamBold
-    btnBoss.Parent = bossFrame
+    btnBoss.Parent = farmFrame
 
     btnBoss.MouseButton1Click:Connect(function()
         getgenv().DRONX.BossName = bossInput.Text
@@ -244,10 +186,27 @@ local function criarGUI()
         btnBoss.BackgroundColor3 = getgenv().DRONX.BossFarm and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(0, 150, 0)
     end)
 
+    -- Botão iniciar/parar geral
+    fY = fY + 60
+    local btnGeral = Instance.new("TextButton")
+    btnGeral.Size = UDim2.new(0.6, 0, 0, 35)
+    btnGeral.Position = UDim2.new(0.2, 0, 0, fY)
+    btnGeral.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    btnGeral.Text = "INICIAR TODOS"
+    btnGeral.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btnGeral.TextScaled = true
+    btnGeral.Font = Enum.Font.GothamBold
+    btnGeral.Parent = farmFrame
+
+    btnGeral.MouseButton1Click:Connect(function()
+        getgenv().DRONX.Running = not getgenv().DRONX.Running
+        btnGeral.Text = getgenv().DRONX.Running and "PARAR TODOS" or "INICIAR TODOS"
+        btnGeral.BackgroundColor3 = getgenv().DRONX.Running and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(0, 150, 0)
+    end)
+
     -- ====== ABA TELEPORT ======
     local teleFrame = createContentTab("teleport")
     local tY = 0
-    -- Coordenadas
     local coordInput = Instance.new("TextBox")
     coordInput.Size = UDim2.new(0.8, 0, 0, 30)
     coordInput.Position = UDim2.new(0.1, 0, 0, tY)
@@ -274,11 +233,10 @@ local function criarGUI()
         local x, y, z = coords:match("(%d+),%s*(%d+),%s*(%d+)")
         if x and y and z then
             getgenv().DRONX.TeleportCoords = {X = tonumber(x), Y = tonumber(y), Z = tonumber(z)}
-            -- O módulo Teleport.lua detecta e executa
         end
     end)
 
-    -- Ilhas rápidas (exemplo)
+    -- Ilhas rápidas
     local ilhas = {"Marine Fort", "Jungle", "Sky Island"}
     for i, ilha in ipairs(ilhas) do
         local btn = Instance.new("TextButton")
@@ -291,14 +249,13 @@ local function criarGUI()
         btn.Font = Enum.Font.GothamBold
         btn.Parent = teleFrame
         btn.MouseButton1Click:Connect(function()
-            -- Você pode definir coordenadas fixas para cada ilha
             local coords = {
-                ["Marine Fort"] = CFrame.new(100, 50, 200),
-                ["Jungle"] = CFrame.new(-150, 30, 300),
-                ["Sky Island"] = CFrame.new(0, 500, 0)
+                ["Marine Fort"] = {X=100, Y=50, Z=200},
+                ["Jungle"] = {X=-150, Y=30, Z=300},
+                ["Sky Island"] = {X=0, Y=500, Z=0}
             }
             if coords[ilha] then
-                getgenv().DRONX.TeleportCoords = {X = coords[ilha].X, Y = coords[ilha].Y, Z = coords[ilha].Z}
+                getgenv().DRONX.TeleportCoords = coords[ilha]
             end
         end)
     end
@@ -306,12 +263,11 @@ local function criarGUI()
     -- ====== ABA CONFIG ======
     local configFrame = createContentTab("config")
     local cY = 0
-    -- Distância
     local distLabel = Instance.new("TextLabel")
     distLabel.Size = UDim2.new(1, 0, 0, 25)
     distLabel.Position = UDim2.new(0, 0, 0, cY)
     distLabel.BackgroundTransparency = 1
-    distLabel.Text = "Distância de ataque: " .. getgenv().DRONX.AttackDistance
+    distLabel.Text = "Distância de ataque: " .. (getgenv().DRONX.AttackDistance or 40)
     distLabel.TextColor3 = Color3.fromRGB(200, 200, 210)
     distLabel.TextSize = 16
     distLabel.Font = Enum.Font.Gotham
@@ -326,7 +282,7 @@ local function criarGUI()
     cY = cY + 15
 
     local distFill = Instance.new("Frame")
-    distFill.Size = UDim2.new(getgenv().DRONX.AttackDistance / 80, 0, 1, 0)
+    distFill.Size = UDim2.new((getgenv().DRONX.AttackDistance or 40) / 80, 0, 1, 0)
     distFill.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
     distFill.Parent = distSlider
 
@@ -369,10 +325,10 @@ local function criarGUI()
     createCheckbox(configFrame, cY, "Auto Reconectar", "AutoReconnect")
     cY = cY + 35
 
-    -- ====== ATIVA A PRIMEIRA ABA ======
+    -- Ativa primeira aba
     tabButtons["farm"].MouseButton1Click:Fire()
 
-    print("[DRONX] GUI principal carregada. Módulos aguardando variáveis globais.")
+    print("[DRONX] GUI carregada.")
 end
 
 pcall(criarGUI)
