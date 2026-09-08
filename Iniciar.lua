@@ -1,11 +1,13 @@
 -- ============================================================
--- Iniciar.lua – Loader principal do DRONX
--- Carrega todos os scripts automaticamente.
+-- INICIAR.lua – Loader principal DRONX (corrigido)
+-- Carrega cada script UMA ÚNICA VEZ, sem loops infinitos.
 -- ============================================================
 
+print("[DRONX] ========================================")
 print("[DRONX] Iniciando loader...")
+print("[DRONX] ========================================")
 
--- Substitua os IDs abaixo pelos IDs reais dos seus scripts no Pastebin
+-- Lista de scripts com suas URLs (apenas os que existem)
 local scripts = {
     ["Config"] = "https://raw.githubusercontent.com/msddragon0/DragonX/refs/heads/main/Config.lua",
     ["GUI"] = "https://raw.githubusercontent.com/msddragon0/DragonX/refs/heads/main/GUI.lua",
@@ -13,18 +15,34 @@ local scripts = {
     ["Teleport"] = "https://raw.githubusercontent.com/msddragon0/DragonX/refs/heads/main/Teleport.lua"
 }
 
-for nome, url in pairs(scripts) do
+-- Função para carregar um script com segurança
+local function carregarScript(url, nome)
     print("[DRONX] Carregando " .. nome .. "...")
-    local success, err = pcall(function()
-        local scriptContent = game:HttpGet(url)
-        loadstring(scriptContent)()
+    local sucesso, resultado = pcall(function()
+        local conteudo = game:HttpGet(url)
+        if conteudo and conteudo ~= "" then
+            local func, err = loadstring(conteudo)
+            if func then
+                func()
+                print("[DRONX] ✅ " .. nome .. " carregado com sucesso!")
+            else
+                warn("[DRONX] ❌ Erro ao compilar " .. nome .. ": " .. tostring(err))
+            end
+        else
+            warn("[DRONX] ❌ " .. nome .. " está vazio ou não encontrado.")
+        end
     end)
-    if not success then
-        warn("[DRONX] Erro ao carregar " .. nome .. ": " .. tostring(err))
-    else
-        print("[DRONX] " .. nome .. " carregado com sucesso.")
+    if not sucesso then
+        warn("[DRONX] ❌ Erro ao baixar " .. nome .. ": " .. tostring(resultado))
     end
-    task.wait(0.5) -- Pequeno delay entre cada carregamento
+    task.wait(0.5) -- pequeno delay para não sobrecarregar
 end
 
-print("[DRONX] Todos os scripts carregados. Aguarde a GUI aparecer.")
+-- Carrega cada script da lista (apenas uma vez)
+for nome, url in pairs(scripts) do
+    carregarScript(url, nome)
+end
+
+print("[DRONX] ========================================")
+print("[DRONX] ✅ Todos os scripts carregados!")
+print("[DRONX] ========================================")
