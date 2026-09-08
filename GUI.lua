@@ -1,50 +1,33 @@
 -- ============================================================
--- GUI.lua – DRONX COMPLETO (COM LOGS E CORREÇÕES)
+-- GUI.lua – DRONX (LAYOUT CORRIGIDO, SEM UIListLayout)
 -- ============================================================
 
-print("[DRONX] Iniciando criação da GUI completa...")
+print("[DRONX] Iniciando GUI (layout fixo)...")
 
 local function criarGUI()
-    print("[DRONX] Passo 1: Obtendo jogador...")
     local player = game.Players.LocalPlayer
-    if not player then
-        warn("[DRONX] Sem player!")
-        return
-    end
+    if not player then return warn("[DRONX] Sem player") end
 
-    print("[DRONX] Passo 2: Obtendo pai da GUI...")
-    local guiParent = game:GetService("CoreGui")
-    if not guiParent then
-        guiParent = player:WaitForChild("PlayerGui")
-    end
-    if not guiParent then
-        warn("[DRONX] Sem pai para GUI!")
-        return
-    end
-    print("[DRONX] Pai da GUI:", guiParent.Name)
+    local guiParent = game:GetService("CoreGui") or player:WaitForChild("PlayerGui")
+    if not guiParent then return warn("[DRONX] Sem pai") end
 
-    print("[DRONX] Passo 3: Criando ScreenGui...")
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "DRONX_GUI"
     screenGui.ResetOnSpawn = false
     screenGui.Parent = guiParent
 
     -- ====== JANELA PRINCIPAL ======
-    print("[DRONX] Passo 4: Criando Frame principal...")
     local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 480, 0, 500)
-    mainFrame.Position = UDim2.new(0.5, -240, 0.5, -250)
+    mainFrame.Size = UDim2.new(0, 480, 0, 520)
+    mainFrame.Position = UDim2.new(0.5, -240, 0.5, -260)
     mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
     mainFrame.BorderSizePixel = 1
     mainFrame.BorderColor3 = Color3.fromRGB(60, 60, 70)
     mainFrame.Active = true
     mainFrame.Draggable = true
-    mainFrame.Visible = true
     mainFrame.Parent = screenGui
-    print("[DRONX] Frame principal criado e visível.")
 
     -- ====== TÍTULO E BOTÕES ======
-    print("[DRONX] Passo 5: Criando barra de título...")
     local titleBar = Instance.new("Frame")
     titleBar.Size = UDim2.new(1, 0, 0, 35)
     titleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
@@ -61,7 +44,7 @@ local function criarGUI()
     titulo.TextXAlignment = Enum.TextXAlignment.Left
     titulo.Parent = titleBar
 
-    -- Botão Minimizar (bolinha verde)
+    -- Botão Minimizar
     local btnMinimizar = Instance.new("TextButton")
     btnMinimizar.Size = UDim2.new(0, 25, 0, 25)
     btnMinimizar.Position = UDim2.new(1, -65, 0, 5)
@@ -73,7 +56,21 @@ local function criarGUI()
     btnMinimizar.BorderSizePixel = 0
     btnMinimizar.Parent = titleBar
 
-    -- Botão Fechar (vermelho)
+    local minimizado = false
+    btnMinimizar.MouseButton1Click:Connect(function()
+        minimizado = not minimizado
+        if minimizado then
+            mainFrame.Size = UDim2.new(0, 480, 0, 35)
+            btnMinimizar.Text = "+"
+            btnMinimizar.BackgroundColor3 = Color3.fromRGB(200, 150, 0)
+        else
+            mainFrame.Size = UDim2.new(0, 480, 0, 520)
+            btnMinimizar.Text = "—"
+            btnMinimizar.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+        end
+    end)
+
+    -- Botão Fechar
     local btnFechar = Instance.new("TextButton")
     btnFechar.Size = UDim2.new(0, 25, 0, 25)
     btnFechar.Position = UDim2.new(1, -35, 0, 5)
@@ -84,28 +81,9 @@ local function criarGUI()
     btnFechar.Font = Enum.Font.GothamBold
     btnFechar.BorderSizePixel = 0
     btnFechar.Parent = titleBar
-    btnFechar.MouseButton1Click:Connect(function()
-        screenGui:Destroy()
-        print("[DRONX] GUI fechada.")
-    end)
-
-    -- Variável de estado do minimizar
-    local minimizado = false
-    btnMinimizar.MouseButton1Click:Connect(function()
-        minimizado = not minimizado
-        if minimizado then
-            mainFrame.Size = UDim2.new(0, 480, 0, 35)
-            btnMinimizar.Text = "+"
-            btnMinimizar.BackgroundColor3 = Color3.fromRGB(200, 150, 0)
-        else
-            mainFrame.Size = UDim2.new(0, 480, 0, 500)
-            btnMinimizar.Text = "—"
-            btnMinimizar.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
-        end
-    end)
+    btnFechar.MouseButton1Click:Connect(function() screenGui:Destroy() end)
 
     -- ====== NOTIFICAÇÕES ======
-    print("[DRONX] Passo 6: Criando sistema de notificações...")
     local notificacao = Instance.new("Frame")
     notificacao.Size = UDim2.new(0, 300, 0, 40)
     notificacao.Position = UDim2.new(0.5, -150, 0, -50)
@@ -131,36 +109,28 @@ local function criarGUI()
         notifTexto.Text = texto
         notificacao.Position = UDim2.new(0.5, -150, 0, -50)
         notificacao.Visible = true
-        local tween = game:GetService("TweenService"):Create(notificacao, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Position = UDim2.new(0.5, -150, 0, 20)})
+        local tween = game:GetService("TweenService"):Create(notificacao, TweenInfo.new(0.3), {Position = UDim2.new(0.5, -150, 0, 20)})
         tween:Play()
         tween.Completed:Wait()
         task.wait(3)
-        local tween2 = game:GetService("TweenService"):Create(notificacao, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Position = UDim2.new(0.5, -150, 0, -50)})
+        local tween2 = game:GetService("TweenService"):Create(notificacao, TweenInfo.new(0.3), {Position = UDim2.new(0.5, -150, 0, -50)})
         tween2:Play()
         tween2.Completed:Wait()
         notificacao.Visible = false
     end
 
-    -- ====== CONTAINER COM ROLAGEM ======
-    print("[DRONX] Passo 7: Criando ScrollingFrame...")
-    local container = Instance.new("ScrollingFrame")
+    -- ====== CONTAINER (sem rolagem, layout fixo) ======
+    local container = Instance.new("Frame")
     container.Size = UDim2.new(1, -10, 1, -45)
     container.Position = UDim2.new(0, 5, 0, 40)
     container.BackgroundTransparency = 1
-    container.ScrollBarThickness = 5
-    container.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 90)
     container.Parent = mainFrame
-    container.CanvasSize = UDim2.new(0, 0, 0, 600) -- altura fixa para rolagem
 
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 8)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Parent = container
-
-    -- ====== FUNÇÃO PARA CRIAR CHECKBOX ======
-    local function createCheckbox(parent, text, varName)
+    -- Função para criar checkbox (sem UIListLayout)
+    local function createCheckbox(parent, y, text, varName)
         local frame = Instance.new("Frame")
         frame.Size = UDim2.new(1, 0, 0, 30)
+        frame.Position = UDim2.new(0, 0, 0, y)
         frame.BackgroundTransparency = 1
         frame.Parent = parent
 
@@ -187,10 +157,7 @@ local function criarGUI()
         check.BorderColor3 = Color3.fromRGB(255, 255, 255)
         check.Parent = frame
 
-        local state = false
-        if getgenv().DRONX and getgenv().DRONX[varName] then
-            state = getgenv().DRONX[varName]
-        end
+        local state = getgenv().DRONX and getgenv().DRONX[varName] or false
         if state then
             check.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
             check.Text = "✓"
@@ -202,73 +169,70 @@ local function criarGUI()
             getgenv().DRONX[varName] = state
             check.BackgroundColor3 = state and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(100, 100, 100)
             check.Text = state and "✓" or ""
-            if state then
-                mostrarNotificacao(text .. " ativado!", Color3.fromRGB(0, 200, 0))
-            else
-                mostrarNotificacao(text .. " desativado!", Color3.fromRGB(200, 0, 0))
-            end
+            mostrarNotificacao(text .. (state and " ativado!" or " desativado!"), state and Color3.fromRGB(0,200,0) or Color3.fromRGB(200,0,0))
         end)
         return frame
     end
 
-    -- ====== SEÇÃO FARM ======
-    print("[DRONX] Passo 8: Criando seção Farm...")
-    local farmSection = Instance.new("Frame")
-    farmSection.Size = UDim2.new(1, 0, 0, 0)
-    farmSection.BackgroundTransparency = 1
-    farmSection.Parent = container
+    -- ====== LAYOUT FIXO ======
+    local y = 0
 
+    -- Título Farm
     local farmTitle = Instance.new("TextLabel")
     farmTitle.Size = UDim2.new(1, 0, 0, 25)
+    farmTitle.Position = UDim2.new(0, 0, 0, y)
     farmTitle.BackgroundTransparency = 1
     farmTitle.Text = "⚔️ FARM"
     farmTitle.TextColor3 = Color3.fromRGB(255, 215, 0)
     farmTitle.TextSize = 18
     farmTitle.Font = Enum.Font.GothamBold
     farmTitle.TextXAlignment = Enum.TextXAlignment.Left
-    farmTitle.Parent = farmSection
+    farmTitle.Parent = container
+    y = y + 30
 
-    createCheckbox(farmSection, "Auto Farm", "AutoFarm")
-    createCheckbox(farmSection, "Farm Maestria", "FarmMaestria")
-    createCheckbox(farmSection, "Auto Coletar Itens", "AutoCollect")
-    createCheckbox(farmSection, "Cura Automática", "AutoHeal")
+    createCheckbox(container, y, "Auto Farm", "AutoFarm")
+    y = y + 35
+    createCheckbox(container, y, "Farm Maestria", "FarmMaestria")
+    y = y + 35
+    createCheckbox(container, y, "Auto Coletar Itens", "AutoCollect")
+    y = y + 35
+    createCheckbox(container, y, "Cura Automática", "AutoHeal")
+    y = y + 45
 
-    -- ====== SEÇÃO BOSS ======
-    print("[DRONX] Passo 9: Criando seção Boss...")
-    local bossSection = Instance.new("Frame")
-    bossSection.Size = UDim2.new(1, 0, 0, 0)
-    bossSection.BackgroundTransparency = 1
-    bossSection.Parent = container
-
+    -- Seção Boss
     local bossTitle = Instance.new("TextLabel")
     bossTitle.Size = UDim2.new(1, 0, 0, 25)
+    bossTitle.Position = UDim2.new(0, 0, 0, y)
     bossTitle.BackgroundTransparency = 1
     bossTitle.Text = "👹 BOSS"
     bossTitle.TextColor3 = Color3.fromRGB(255, 215, 0)
     bossTitle.TextSize = 18
     bossTitle.Font = Enum.Font.GothamBold
     bossTitle.TextXAlignment = Enum.TextXAlignment.Left
-    bossTitle.Parent = bossSection
+    bossTitle.Parent = container
+    y = y + 30
 
     local bossDropdown = Instance.new("TextBox")
     bossDropdown.Size = UDim2.new(0.9, 0, 0, 30)
-    bossDropdown.Position = UDim2.new(0.05, 0, 0, 0)
+    bossDropdown.Position = UDim2.new(0.05, 0, 0, y)
     bossDropdown.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
     bossDropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
     bossDropdown.TextSize = 16
     bossDropdown.Font = Enum.Font.Gotham
-    bossDropdown.PlaceholderText = "Digite o nome do Boss"
-    bossDropdown.Parent = bossSection
+    bossDropdown.PlaceholderText = "Nome do Boss"
+    bossDropdown.Parent = container
+    y = y + 40
 
     local btnBoss = Instance.new("TextButton")
     btnBoss.Size = UDim2.new(0.6, 0, 0, 30)
-    btnBoss.Position = UDim2.new(0.2, 0, 0, 40)
+    btnBoss.Position = UDim2.new(0.2, 0, 0, y)
     btnBoss.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
     btnBoss.Text = "CAÇAR BOSS"
     btnBoss.TextColor3 = Color3.fromRGB(255, 255, 255)
     btnBoss.TextScaled = true
     btnBoss.Font = Enum.Font.GothamBold
-    btnBoss.Parent = bossSection
+    btnBoss.Parent = container
+    y = y + 40
 
     btnBoss.MouseButton1Click:Connect(function()
         local nome = bossDropdown.Text
@@ -282,38 +246,35 @@ local function criarGUI()
         mostrarNotificacao("Caçando: " .. nome, Color3.fromRGB(0, 200, 0))
     end)
 
-    -- ====== SEÇÃO STATUS ======
-    print("[DRONX] Passo 10: Criando seção Status...")
-    local statsSection = Instance.new("Frame")
-    statsSection.Size = UDim2.new(1, 0, 0, 0)
-    statsSection.BackgroundTransparency = 1
-    statsSection.Parent = container
-
+    -- Seção Status
     local statsTitle = Instance.new("TextLabel")
     statsTitle.Size = UDim2.new(1, 0, 0, 25)
+    statsTitle.Position = UDim2.new(0, 0, 0, y)
     statsTitle.BackgroundTransparency = 1
     statsTitle.Text = "📊 STATUS"
     statsTitle.TextColor3 = Color3.fromRGB(255, 215, 0)
     statsTitle.TextSize = 18
     statsTitle.Font = Enum.Font.GothamBold
     statsTitle.TextXAlignment = Enum.TextXAlignment.Left
-    statsTitle.Parent = statsSection
+    statsTitle.Parent = container
+    y = y + 30
 
     local statsLabel = Instance.new("TextLabel")
     statsLabel.Size = UDim2.new(1, 0, 0, 25)
+    statsLabel.Position = UDim2.new(0, 0, 0, y)
     statsLabel.BackgroundTransparency = 1
     statsLabel.Text = "💰 $1,323,522  |  📊 Lv. 2631"
     statsLabel.TextColor3 = Color3.fromRGB(200, 200, 210)
     statsLabel.TextSize = 16
     statsLabel.Font = Enum.Font.Gotham
     statsLabel.TextXAlignment = Enum.TextXAlignment.Left
-    statsLabel.Parent = statsSection
+    statsLabel.Parent = container
+    y = y + 30
 
-    -- ====== BOTÃO INICIAR/PARAR ======
-    print("[DRONX] Passo 11: Criando botão principal...")
+    -- Botão Iniciar/Parar
     local btnMain = Instance.new("TextButton")
     btnMain.Size = UDim2.new(0.6, 0, 0, 40)
-    btnMain.Position = UDim2.new(0.2, 0, 0, 0)
+    btnMain.Position = UDim2.new(0.2, 0, 0, y + 10)
     btnMain.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
     btnMain.Text = "▶ INICIAR"
     btnMain.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -327,22 +288,13 @@ local function criarGUI()
         getgenv().DRONX.Running = running
         btnMain.Text = running and "⏹ PARAR" or "▶ INICIAR"
         btnMain.BackgroundColor3 = running and Color3.fromRGB(150, 0, 0) or Color3.fromRGB(0, 150, 0)
-        if running then
-            mostrarNotificacao("Todos os sistemas iniciados!", Color3.fromRGB(0, 200, 0))
-        else
-            mostrarNotificacao("Todos os sistemas parados.", Color3.fromRGB(200, 0, 0))
-        end
+        mostrarNotificacao(running and "Sistemas iniciados!" or "Sistemas parados.", running and Color3.fromRGB(0,200,0) or Color3.fromRGB(200,0,0))
     end)
 
-    -- ====== FINALIZAÇÃO ======
-    print("[DRONX] Passo 12: GUI completa criada com sucesso!")
-    print("[DRONX] A janela DEVE estar visível agora.")
+    -- Ajuste do container (altura fixa)
+    container.Size = UDim2.new(1, -10, 0, y + 60)
+
+    print("[DRONX] GUI carregada com layout fixo!")
 end
 
--- Executa com proteção e logs
-local ok, err = pcall(criarGUI)
-if not ok then
-    warn("[DRONX] ERRO FATAL na criação da GUI: " .. tostring(err))
-else
-    print("[DRONX] criarGUI() executou sem erros.")
-end
+pcall(criarGUI)
